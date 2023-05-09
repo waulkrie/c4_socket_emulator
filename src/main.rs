@@ -2,8 +2,7 @@
 use clap::{arg, command};
 use std::io::Write;
 use std::net::TcpStream;
-use serde_json::{json, Value};
-use std::borrow::Borrow;
+use serde_json::{json};
 use clap::Parser;
 
 /// Simple program to emulate control4
@@ -29,18 +28,15 @@ struct Args {
 
 
 // https://github.com/tui-rs-revival/ratatui
-// #[cfg(feature = "cargo")]
 fn main() {
-    let ip:&str = "172.16.10.67:5001";
+    let mut ip:&str = "172.16.10.67:5001";
     let args:Args = Args::parse();
-    println!("{args:#?}");
+    // println!("{args:#?}");
 
-    if args.ip.is_empty() {
-        let ip:&str = "172.16.10.67:5001";
-    } else{
-        let ip:&str = args.ip.as_str();
+    if !args.ip.is_empty() {
+        ip = args.ip.as_str();
     }
-
+    println!("ip: {:?}", ip);
     let json:String = convert_args_json(&args);
     stream_to_ip(&ip, &json).unwrap();
 
@@ -48,7 +44,7 @@ fn main() {
 
 
 fn stream_to_ip(ip: &str, cmd: &str) -> Result<String, String> {
-    if let Ok(mut stream) = TcpStream::connect("172.16.10.67:5001") {
+    if let Ok(mut stream) = TcpStream::connect(ip) {
         if let Ok(_ret) = stream.write(cmd.to_string().as_ref()) {
             drop(stream);
             println!("Ok ");
