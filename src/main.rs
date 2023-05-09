@@ -3,7 +3,7 @@ use clap::{arg, command};
 use std::io::Write;
 use std::net::TcpStream;
 use serde_json::{json, Value};
-
+use std::borrow::Borrow;
 use clap::Parser;
 
 /// Simple program to emulate control4
@@ -31,27 +31,23 @@ struct Args {
 // https://github.com/tui-rs-revival/ratatui
 // #[cfg(feature = "cargo")]
 fn main() {
-    let ip = "172.16.10.67:5001";
-    let args = Args::parse();
+    let ip:&str = "172.16.10.67:5001";
+    let args:Args = Args::parse();
     println!("{args:#?}");
 
     if args.ip.is_empty() {
-        let ip = "172.16.10.67:5001";
+        let ip:&str = "172.16.10.67:5001";
     } else{
-        let ip = args.ip;
+        let ip:&str = args.ip.as_str();
     }
-    if args.open {
-        stream_to_ip(&ip, json!({"cmd": "open"})).unwrap();
-    } else if args.close {
-        stream_to_ip(&ip, json!({"cmd": "close"})).unwrap();
-    } else if let Some(percent) = args.percent {
-        stream_to_ip(&ip, json!({"cmd": "percent", "value": percent})).unwrap();
-    }
+
+    let json:String = convert_args_json(&args);
+    stream_to_ip(&ip, &json).unwrap();
 
 }
 
 
-fn stream_to_ip(ip: &str, cmd: Value) -> Result<String, String> {
+fn stream_to_ip(ip: &str, cmd: &str) -> Result<String, String> {
     if let Ok(mut stream) = TcpStream::connect("172.16.10.67:5001") {
         if let Ok(_ret) = stream.write(cmd.to_string().as_ref()) {
             drop(stream);
@@ -60,5 +56,16 @@ fn stream_to_ip(ip: &str, cmd: Value) -> Result<String, String> {
         }
     }
     Err("failed to connect socket".to_string())
+}
 
+fn convert_args_json(args: &Args) -> String {
+    if args.open {
+        json!({"cmd": "open"}).to_string()
+    } else if args.close {
+        json!({"cmd": "close"}).to_string()
+    } else if let Some(percent) = args.percent {
+        json!({"cmd": "percent", "value": percent}).to_string()
+    } else {
+        json!({"cmd": "open"}).to_string()
+    }
 }
