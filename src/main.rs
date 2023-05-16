@@ -32,7 +32,6 @@ struct Args {
     ip: String,
 }
 
-
 // https://github.com/tui-rs-revival/ratatui
 fn main() {
     let mut ip:&str = "172.16.10.67:5001";
@@ -49,7 +48,6 @@ fn main() {
         let json:String = convert_args_json(&args);
         stream_to_ip(&ip, &json).unwrap();
     }
-
 }
 
 fn stress_test(ip: &str){
